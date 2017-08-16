@@ -9,17 +9,42 @@
         span
       .nav-right
         .control.nav-item
-          input(class="input" type="text" placeholder="Choose your city")
+          vue-google-autocomplete(id="map"
+            types="(cities)"
+            classname="input"
+            placeholder="Start typing"
+            v-on:placechanged="getAddressData")
+
 
 
 </template>
 
 <script>
+  import VueGoogleAutocomplete from 'vue-google-autocomplete'
+
   export default {
+    components: {
+      VueGoogleAutocomplete
+    },
     name: 'Nav',
     data () {
       return {
-        msg: 'Welcome to Your Vue.js App'
+        address: {}
+      }
+    },
+    methods: {
+      /**
+       * When the location found
+       * @param {Object} addressData Data of the found location
+       * @param {Object} placeResultData PlaceResult object
+       */
+      getAddressData: function (addressData, placeResultData) {
+        this.address = {
+          country: addressData.country,
+          city: addressData.locality
+        }
+
+        this.$emit('chooseCity', this.address)
       }
     }
   }

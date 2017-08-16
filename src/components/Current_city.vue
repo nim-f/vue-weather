@@ -1,7 +1,7 @@
 <template lang="pug">
   .container.has-text-centered
     .title(v-if="weather") {{ weather.main.temp }} &deg;C
-    .subtitle {{ address.city }}, {{ address.postalCode}} ({{ address.country}})
+    .subtitle {{ address.city }}, {{ address.country}}
 
 </template>
 
@@ -17,17 +17,27 @@
         weather: null
       }
     },
+    methods: {
+      updateWeather () {
+        let vm = this
+        const apiLink = location.protocol + '//api.openweathermap.org/data/2.5/weather?q=' + this.address.city + '&APPID=' + apiKey + '&units=metric'
+        axios.get(apiLink)
+        .then(function (response) {
+          console.log(response)
+          vm.weather = response.data
+        })
+        .catch(function (error) {
+          console.log(error)
+        })
+      }
+    },
     mounted () {
-      let vm = this
-      const apiLink = location.protocol + '//api.openweathermap.org/data/2.5/weather?q=' + this.address.city + '&APPID=' + apiKey + '&units=metric'
-      axios.get(apiLink)
-      .then(function (response) {
-        console.log(response)
-        vm.weather = response.data
-      })
-      .catch(function (error) {
-        console.log(error)
-      })
+      this.updateWeather()
+    },
+    watch: {
+      address: function () {
+        this.updateWeather()
+      }
     }
   }
 </script>
