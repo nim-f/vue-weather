@@ -19,7 +19,7 @@
     },
     mounted () {
       let vm = this
-      const apiLink = 'http://api.openweathermap.org/data/2.5/weather?q=' + this.address.city + '&APPID=' + apiKey + '&units=metric'
+      const apiLink = location.protocol + '//api.openweathermap.org/data/2.5/weather?q=' + this.address.city + '&APPID=' + apiKey + '&units=metric'
       axios.get(apiLink)
       .then(function (response) {
         console.log(response)
