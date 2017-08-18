@@ -5,27 +5,52 @@
         weather-nav(@chooseCity="changeCity")
       .hero-body
         .waiting.has-text-centered(v-if="!address") Checking for location...
-        current-city(v-if="address", :address="address")
+        current-city(v-if="address", :address="address", :weather="weather")
       .hero-foot
         .container
           .tabs
             ul
-              li.is-active: a Today
-              li: a Tomorrow
-              li: a Week
-              li: a Month
+              li.is-active: router-link(to="/") Today
+              li: router-link(to="/tomorrow") Tomorrow
+              li: router-link(to="/five_days") 5 days
+              li: router-link(to="/sixteen_days") 16 days
 
+    .container(v-if="weather_5day")
+      router-view(:data="weather_5day")
 
-    //router-view
 </template>
 
 <script>
+const apiKey = '72cd3fe13ceb31d0b863319d463153a9'
+import axios from 'axios'
 import geolocator from 'geolocator'
+import moment from 'moment'
 import WeatherNav from './components/Weather_nav.vue'
 import CurrentCity from './components/Current_city.vue'
 
 let address = JSON.parse(localStorage.getItem('address'))
+/*
+class Weather {
+  constructor (data, type) {
+    this.originalData = data;
+    for (let field in data) {
+      this[field] = data[field];
+    }
+  }
 
+  updateWeather (type) {
+    this.api = location.protocol + '//api.openweathermap.org/data/2.5/'+ type +'?q=' + this.city + '&APPID=' + apiKey + '&units=metric'
+    axios.get(this.api)
+    .then(function (response) {
+      console.log(response)
+      vm.weather = response.data
+    })
+    .catch(function (error) {
+      console.log(error)
+    })
+  }
+}
+*/
 export default {
   components: {
     WeatherNav, CurrentCity
@@ -34,16 +59,52 @@ export default {
   data () {
     return {
       address: address,
-      updateByUser: false
+      updateByUser: false,
+      weather: null,
+      weather_5day: null
     }
   },
   methods: {
+    toDate (timestamp) {
+      return moment.unix(timestamp).format('DD MMMM HH:mm')
+    },
     changeCity (address) {
       this.address = address
       this.updateByUser = true
+      this.updateWeather()
+      this.get5dayWeather()
+    },
+    updateWeather () {
+      let vm = this
+      const apiLink = location.protocol + '//api.openweathermap.org/data/2.5/weather?q=' + this.address.city + '&APPID=' + apiKey + '&units=metric'
+      axios.get(apiLink)
+      .then(function (response) {
+//        console.log(response)
+        vm.weather = response.data
+      })
+      .catch(function (error) {
+        console.log(error)
+      })
+    },
+
+    get5dayWeather () {
+      let vm = this
+      const apiLink = location.protocol + '//api.openweathermap.org/data/2.5/forecast?q=' + this.address.city + '&APPID=' + apiKey + '&units=metric'
+      axios.get(apiLink)
+      .then(function (response) {
+//        console.log('5day', response)
+        vm.weather_5day = response.data
+      })
+      .catch(function (error) {
+        console.log(error)
+      })
     }
   },
   mounted () {
+    if (address) {
+      this.updateWeather()
+      this.get5dayWeather()
+    }
     let vm = this
     geolocator.config({
       language: 'en',
@@ -73,7 +134,7 @@ export default {
           country: location.address.country,
           city: location.address.city
         }
-
+        vm.updateWeather()
         localStorage.setItem('address', JSON.stringify(vm.address))
       }
     })
